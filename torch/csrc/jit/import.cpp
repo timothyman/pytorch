@@ -114,14 +114,14 @@ IValue ScriptModuleDeserializer::readArchive(const std::string& archive_name) {
   };
 
   auto class_resolver = [&](const c10::QualifiedName& qn) {
-    auto cls = source_importer_.loadNamedType(qn)->expect<ClassType>();
-    return c10::StrongTypePtr(compilation_unit_, std::move(cls));
+    return source_importer_.loadNamedType(qn)->expect<ClassType>();
   };
 
   // Decouple how to get obj from type. In this file it's dependent on
   // Method.run() and graph executor, etc.
   // For bytecode import we need to decouple these dependencies.
-  auto obj_loader = [&](at::StrongTypePtr type, IValue input) {
+  auto obj_loader = [&](c10::ClassTypePtr typePtr, IValue input) {
+    c10::StrongTypePtr type(compilation_unit_, std::move(typePtr));
     auto cls = type.type_->expect<at::ClassType>();
     size_t n = cls->numAttributes();
     if (checkHasValidSetGetState(type.type_)) {
